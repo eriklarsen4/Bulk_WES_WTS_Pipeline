@@ -189,7 +189,7 @@ workflow {
 
         log.info("Sample ID: ${sample_id}")
         log.info("Looking for files matching pattern:")
-        log.info("  Pattern: (DNA_|cfDNA_|RNA_)?${sample_id}.*_R1.*\\.(fq\\.gz|fastq\\.gz|fq|fastq)$")
+        log.info('  Pattern: (DNA_|cfDNA_|RNA_)?' + sample_id + '.*_R1.*\\.(fq\\.gz|fastq\\.gz|fq|fastq)$')
         
         def r1 = dir.listFiles().find { it.name =~ /(DNA_|cfDNA_|RNA_)?${sample_id}.*_R1.*\.(fq\.gz|fastq\.gz|fq|fastq)$/ }
         def r2 = dir.listFiles().find { it.name =~ /(DNA_|cfDNA_|RNA_)?${sample_id}.*_R2.*\.(fq\.gz|fastq\.gz|fq|fastq)$/ }
@@ -198,11 +198,14 @@ workflow {
         log.info("  R1: ${r1?.name ?: 'NOT FOUND'}")
         log.info("  R2: ${r2?.name ?: 'NOT FOUND'}")
         
-        dir.listFiles().each { log.info("  Available: ${it.name}") }
+        log.info("Available files:")
+        dir.listFiles().each { log.info("    ${it.name}") }
 
         if (r1 && r2) {
+            log.info("✓ Match found!")
             [sample_id, sample_dir, r1, r2]
         } else {
+            log.warn("✗ No match")
             return null
         }
     }

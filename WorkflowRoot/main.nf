@@ -186,16 +186,22 @@ workflow {
         .map { sample_dir ->
             def dir = file(sample_dir)
             def sample_id = dir.name
-
-            // Find paired-end fastqs in this directory
-            def r1 = dir.listFiles().find { it.name =~ /(DNA_|cfDNA_|RNA_)?${sample_id}_R1\.fq\.gz$/ }
-            def r2 = dir.listFiles().find { it.name =~ /(DNA_|cfDNA_|RNA_)?${sample_id}_R2\.fq\.gz$/ }
-
+    
+            // Find paired-end fastqs - more flexible pattern
+            // Matches: [DNA_|RNA_|cfDNA_]<sample_id>[optional_chars]_R1[optional_chars].(fq.gz|fastq.gz|fq|fastq)
+            def r1 = dir.listFiles().find { it.name =~ /(DNA_|cfDNA_|RNA_)?${sample_id}.*_R1.*\.(fq\.gz|fastq\.gz|fq|fastq)$/ }
+            def r2 = dir.listFiles().find { it.name =~ /(DNA_|cfDNA_|RNA_)?${sample_id}.*_R2.*\.(fq\.gz|fastq\.gz|fq|fastq)$/ }
+    
             if (r1 && r2) {
                 log.info("Found FASTQ pair for ${sample_id}")
+                log.info("  R1: ${r1.name}")
+                log.info("  R2: ${r2.name}")
                 [sample_id, sample_dir, r1, r2]
             } else {
                 log.warn "No paired-end FASTQs found in ${sample_dir}"
+                log.warn "  Looking for: (DNA_|cfDNA_|RNA_)?${sample_id}.*_R1.*.(fq.gz|fastq.gz|fq|fastq)"
+                log.warn "  Files in directory:"
+                dir.listFiles().each { log.warn "    ${it.name}" }
                 return null
             }
         }

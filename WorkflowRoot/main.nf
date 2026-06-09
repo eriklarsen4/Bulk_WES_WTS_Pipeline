@@ -258,12 +258,12 @@ workflow {
         log.info("► Starting WTS (Whole Transcriptome Sequencing) pipeline...")
 
         STAR_ALIGN(
-            TRIM_GALORE.out.trimmed,
+            TRIM_GALORE.out.trimmed_reads,
             file(ref.star_index)
         )
 
         SALMON_QUANT(
-            TRIM_GALORE.out.trimmed,
+            TRIM_GALORE.out.trimmed_reads,
             file(ref.salmon_index),
             file(ref.gtf)
         )

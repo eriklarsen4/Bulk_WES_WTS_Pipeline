@@ -1,0 +1,34 @@
+# Nextflow
+.nextflow/
+.nextflow.log*
+work/
+
+# Results (large, generated)
+results/
+reports/
+
+# Reference files (too large, use download_references.sh instead)
+genomicsshare/references/GRCh38/Homo_sapiens_assembly38.fasta*
+genomicsshare/references/GRCh38/*.dict
+genomicsshare/references/GRCh38/bwa/*
+genomicsshare/references/GRCh38/dbsnp/*.vcf*
+genomicsshare/references/GRCh38/mills/*.vcf.gz*
+genomicsshare/references/GRCh38/annotation/*.gtf*
+genomicsshare/references/GRCh38/STAR/*
+genomicsshare/references/GRCh38/salmon_index/*
+
+# Local/IDE
+.DS_Store
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Logs
+*.log
+logs/
+
+# Singularity cache
+.singularity-cache/
+*.sif

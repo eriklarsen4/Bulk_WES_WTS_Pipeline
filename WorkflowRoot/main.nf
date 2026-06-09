@@ -182,30 +182,31 @@ workflow {
     input_dirs_list = params.input_dirs.split(',').collect { it.trim() }
 
     sample_ch = Channel
-        .from(input_dirs_list)
-        .map { sample_dir ->
-            def dir = file(sample_dir)
-            def sample_id = dir.name
-    
-            // Find paired-end fastqs - more flexible pattern
-            // Matches: [DNA_|RNA_|cfDNA_]<sample_id>[optional_chars]_R1[optional_chars].(fq.gz|fastq.gz|fq|fastq)
-            def r1 = dir.listFiles().find { it.name =~ /(DNA_|cfDNA_|RNA_)?${sample_id}.*_R1.*\.(fq\.gz|fastq\.gz|fq|fastq)$/ }
-            def r2 = dir.listFiles().find { it.name =~ /(DNA_|cfDNA_|RNA_)?${sample_id}.*_R2.*\.(fq\.gz|fastq\.gz|fq|fastq)$/ }
-    
-            if (r1 && r2) {
-                log.info("Found FASTQ pair for ${sample_id}")
-                log.info("  R1: ${r1.name}")
-                log.info("  R2: ${r2.name}")
-                [sample_id, sample_dir, r1, r2]
-            } else {
-                log.warn "No paired-end FASTQs found in ${sample_dir}"
-                log.warn "  Looking for: (DNA_|cfDNA_|RNA_)?${sample_id}.*_R1.*.(fq.gz|fastq.gz|fq|fastq)"
-                log.warn "  Files in directory:"
-                dir.listFiles().each { log.warn "    ${it.name}" }
-                return null
-            }
+    .from(input_dirs_list)
+    .map { sample_dir ->
+        def dir = file(sample_dir)
+        def sample_id = dir.name
+
+        log.info("Sample ID: ${sample_id}")
+        log.info("Looking for files matching pattern:")
+        log.info("  Pattern: (DNA_|cfDNA_|RNA_)?${sample_id}.*_R1.*\\.(fq\\.gz|fastq\\.gz|fq|fastq)$")
+        
+        def r1 = dir.listFiles().find { it.name =~ /(DNA_|cfDNA_|RNA_)?${sample_id}.*_R1.*\.(fq\.gz|fastq\.gz|fq|fastq)$/ }
+        def r2 = dir.listFiles().find { it.name =~ /(DNA_|cfDNA_|RNA_)?${sample_id}.*_R2.*\.(fq\.gz|fastq\.gz|fq|fastq)$/ }
+
+        log.info("Files found:")
+        log.info("  R1: ${r1?.name ?: 'NOT FOUND'}")
+        log.info("  R2: ${r2?.name ?: 'NOT FOUND'}")
+        
+        dir.listFiles().each { log.info("  Available: ${it.name}") }
+
+        if (r1 && r2) {
+            [sample_id, sample_dir, r1, r2]
+        } else {
+            return null
         }
-        .filter { it != null }
+    }
+    .filter { it != null }
 
     // ========== COMMON PREPROCESSING PHASE ==========
     //TRIM_GALORE(sample_ch, params.analysis_type)

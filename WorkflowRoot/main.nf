@@ -221,11 +221,8 @@ workflow {
         BWA_MEM(
             TRIM_GALORE.out.trimmed_reads,
             file(ref.bwa_index),
-            file(ref.bwa_index + ".amb"),
-            file(ref.bwa_index + ".ann"),
-            file(ref.bwa_index + ".bwt"),
-            file(ref.bwa_index + ".pac"),
-            file(ref.bwa_index + ".sa")
+            file(ref.fasta),
+            file(ref.bwa_index)
         )
 
         MERGE_BAM_ALIGNMENT(

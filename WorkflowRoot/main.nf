@@ -216,10 +216,10 @@ workflow {
 
         log.info("► Starting WES (Whole Exome Sequencing) pipeline...")
 
-        FASTQ_TO_SAM_UBAM(TRIM_GALORE.out.trimmed)
+        FASTQ_TO_SAM_UBAM(TRIM_GALORE.out.trimmed_reads)
 
         BWA_MEM(
-            TRIM_GALORE.out.trimmed,
+            TRIM_GALORE.out.trimmed_reads,
             file(ref.bwa_index),
             file(ref.bwa_index + ".amb"),
             file(ref.bwa_index + ".ann"),

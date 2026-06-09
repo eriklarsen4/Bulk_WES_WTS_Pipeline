@@ -1,4 +1,4 @@
-// /groups/ritu/IMPACT_Nextflow/WorkflowRoot/modules/local/filter_mutect_calls/main.nf
+// /<root>/IMPACT_Nextflow/WorkflowRoot/modules/local/filter_mutect_calls/main.nf
 
 process FILTER_MUTECT_CALLS {
     label 'filter_mutect'

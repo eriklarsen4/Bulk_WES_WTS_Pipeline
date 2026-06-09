@@ -1,4 +1,4 @@
-// /groups/ritu/IMPACT_Nextflow/WorkflowRoot/modules/local/add_read_groups/main.nf
+// /<root>/IMPACT_Nextflow/WorkflowRoot/modules/local/add_read_groups/main.nf
 
 process ADD_READ_GROUPS {
     label 'add_read_groups'

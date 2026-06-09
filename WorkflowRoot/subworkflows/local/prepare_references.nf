@@ -1,4 +1,4 @@
-// /groups/ritu/IMPACT_Nextflow/WorkflowRoot/subworkflows/local/prepare_references.nf
+// /<root>/IMPACT_Nextflow/WorkflowRoot/subworkflows/local/prepare_references.nf
 
 include { BWA_INDEX } from '../../modules/local/prepare_references/bwa_index'
 include { STAR_INDEX } from '../../modules/local/prepare_references/star_index'

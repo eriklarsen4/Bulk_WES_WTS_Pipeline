@@ -1,4 +1,4 @@
-// /groups/ritu/IMPACT_Nextflow/WorkflowRoot/modules/local/bqsr/main.nf
+// //<root>/IMPACT_Nextflow/WorkflowRoot/modules/local/bqsr/main.nf
 
 process BQSR {
     label 'bqsr'

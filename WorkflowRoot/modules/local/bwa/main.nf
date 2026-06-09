@@ -1,4 +1,4 @@
-// /groups/ritu/IMPACT_Nextflow/WorkflowRoot/modules/local/bwa/main.nf
+// /<root>/IMPACT_Nextflow/WorkflowRoot/modules/local/bwa/main.nf
 
 process BWA_MEM {
     label 'bwa_align'

@@ -1,4 +1,4 @@
-// /groups/ritu/IMPACT_Nextflow/WorkflowRoot/modules/local/fastq_to_sam/main.nf
+// /<root>/IMPACT_Nextflow/WorkflowRoot/modules/local/fastq_to_sam/main.nf
 
 process FASTQ_TO_SAM_UBAM {
     label 'fastq_to_sam'

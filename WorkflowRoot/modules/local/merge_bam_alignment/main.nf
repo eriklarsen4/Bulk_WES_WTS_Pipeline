@@ -1,4 +1,4 @@
-// /groups/ritu/IMPACT_Nextflow/WorkflowRoot/modules/local/merge_bam_alignment/main.nf
+// /<root>/IMPACT_Nextflow/WorkflowRoot/modules/local/merge_bam_alignment/main.nf
 
 process MERGE_BAM_ALIGNMENT {
     label 'merge_bam'

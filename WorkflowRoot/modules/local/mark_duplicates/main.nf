@@ -1,4 +1,4 @@
-// /groups/ritu/IMPACT_Nextflow/WorkflowRoot/modules/local/mark_duplicates/main.nf
+// /<root>/IMPACT_Nextflow/WorkflowRoot/modules/local/mark_duplicates/main.nf
 
 process MARK_DUPLICATES {
     label 'mark_duplicates'

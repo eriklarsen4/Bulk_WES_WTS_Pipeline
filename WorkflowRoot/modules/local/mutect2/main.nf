@@ -1,4 +1,4 @@
-// /groups/ritu/IMPACT_Nextflow/WorkflowRoot/modules/local/mutect2/main.nf
+// /<root>/IMPACT_Nextflow/WorkflowRoot/modules/local/mutect2/main.nf
 
 process MUTECT2 {
     label 'mutect2'

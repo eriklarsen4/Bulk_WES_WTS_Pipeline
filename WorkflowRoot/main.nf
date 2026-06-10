@@ -187,20 +187,25 @@ workflow {
         def dir = file(sample_dir)
         def sample_id = dir.name
 
-        // Match both .R1. and _R1
-        def r1 = dir.listFiles().find { it.name =~ /([._]R1[._]).*\.(fq\.gz|fastq\.gz|fq|fastq)$/ }
-        def r2 = dir.listFiles().find { it.name =~ /([._]R2[._]).*\.(fq\.gz|fastq\.gz|fq|fastq)$/ }
+        // More permissive: just look for R1 and R2 anywhere in filename
+        def r1 = dir.listFiles().find { it.name =~ /R1.*\.(fq\.gz|fastq\.gz|fq|fastq)$/ }
+        def r2 = dir.listFiles().find { it.name =~ /R2.*\.(fq\.gz|fastq\.gz|fq|fastq)$/ }
 
+        log.info("Sample ID: ${sample_id}")
+        log.info("Looking for R1 and R2 files")
+        log.info("Found R1: ${r1?.name ?: 'NOT FOUND'}")
+        log.info("Found R2: ${r2?.name ?: 'NOT FOUND'}")
+        
         if (r1 && r2) {
-            log.info("Found FASTQ pair for ${sample_id}:")
-            log.info("  R1: ${r1.name}")
-            log.info("  R2: ${r2.name}")
+            log.info("✓ Match found!")
             [sample_id, sample_dir, r1, r2]
         } else {
-            log.warn("No paired-end FASTQs found in ${sample_dir}")
-            log.warn("Looking for: *[._]R1[._]*.fq.gz or *.fastq.gz")
-            log.warn("Files in directory:")
-            dir.listFiles().each { log.warn("  ${it.name}") }
+            log.warn("✗ No match - showing all files:")
+            dir.listFiles().each { f ->
+                log.warn("  File: ${f.name}")
+                log.warn("    Contains 'R1': ${f.name.contains('R1')}")
+                log.warn("    Contains 'R2': ${f.name.contains('R2')}")
+            }
             return null
         }
     }

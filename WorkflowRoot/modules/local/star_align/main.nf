@@ -22,7 +22,7 @@ process STAR_ALIGN {
         --readFilesCommand zcat \
         --readFilesIn ${r1_trimmed} ${r2_trimmed} \
         --outFileNamePrefix ${sample_id} \
-	--cutBAMsortingThreadN 2 \
+	--outBAMsortingThreadN 2 \
 	--quantMode GeneCounts \
 	--outFileNamePrefix ${sample_id}
     

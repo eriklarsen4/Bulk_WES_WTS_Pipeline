@@ -3,20 +3,19 @@
 process FASTQ_TO_SAM_UBAM {
     label 'fastq_to_sam'
     tag "${sample_id}"
-    
+
     input:
-    tuple val(sample_id), val(sample_dir), path(r1_trimmed), path(r2_trimmed)
-    
+    tuple val(sample_id), path(sample_dir), path(r1_trimmed), path(r2_trimmed), val(analysis_type)
+
     output:
     tuple val(sample_id), val(sample_dir), path("${sample_id}_uBAM.bam"), emit: ubam
-    
+
     script:
-    def memory_mb = (task.memory.toMega() * 0.9).toInteger()
-    def gc_threads = Math.max(1, task.cpus - 3)
-    
     """
-    java -Xmx${memory_mb}m \
-        -XX:ParallelGCThreads=${gc_threads} \
+    export PICARD_JAR=/opt/ohpc/pub/apps/picard/2.23.4/libs/picard.jar
+    
+    java -Xmx${task.memory.toMega()}m \
+        -XX:ParallelGCThreads=${task.cpus} \
         -jar \$PICARD_JAR \
         FastqToSam \
         F1=${r1_trimmed} \

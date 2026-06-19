@@ -20,6 +20,7 @@ process FASTQ_TO_SAM_UBAM {
         FastqToSam \
         F1=${r1_trimmed} \
         F2=${r2_trimmed} \
-        O=${sample_id}_uBAM.bam
+        O=${sample_id}_uBAM.bam \
+        SAMPLE_NAME=${sample_id}
     """
 }

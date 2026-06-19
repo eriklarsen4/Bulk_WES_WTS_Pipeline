@@ -4,7 +4,7 @@ process SALMON_QUANT {
     errorStrategy 'ignore'  // Add this line
     
     input:
-    tuple val(sample_id), path(sample_dir), path(r1_trimmed), path(r2_trimmed), val(analysis_type)
+    tuple val(sample_id), path(r1_trimmed), path(r2_trimmed), val(analysis_type)
     path(salmon_index)
     path(gtf)
 

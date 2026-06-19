@@ -15,7 +15,7 @@ process BWA_MEM {
     path(bwa_index_sa)
     
     output:
-    tuple val(sample_id), val(sample_dir), path("${sample_id}_aligned_reads.bam"), emit: aligned_bam
+    tuple val(sample_id), path("${sample_id}_aligned_reads.bam"), emit: aligned_bam
     
     script:
     """

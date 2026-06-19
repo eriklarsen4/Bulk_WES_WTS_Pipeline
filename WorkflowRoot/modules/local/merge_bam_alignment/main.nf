@@ -3,15 +3,15 @@
 process MERGE_BAM_ALIGNMENT {
     label 'merge_bam'
     tag "${sample_id}"
-    
+
     input:
-    tuple val(sample_id), val(sample_dir), path(ubam)
-    tuple val(sample_id), val(sample_dir), path(aligned_bam)
+    tuple val(sample_id), path(ubam)
+    path(aligned_bam)
     path(ref_fasta)
     path(ref_dict)
     
     output:
-    tuple val(sample_id), val(sample_dir), path("${sample_id}_mergebamalignment.bam"), path("${sample_id}_mergebamalignment.bai"), emit: merged_bam
+    tuple val(sample_id), path("${sample_id}_mergebamalignment.bam"), emit: merged_bam
     
     script:
     def memory_mb = (task.memory.toMega() * 0.9).toInteger()

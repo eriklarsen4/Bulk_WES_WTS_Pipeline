@@ -8,7 +8,7 @@ process FASTQ_TO_SAM_UBAM {
     tuple val(sample_id), path(sample_dir), path(r1_trimmed), path(r2_trimmed), val(analysis_type)
 
     output:
-    tuple val(sample_id), val(sample_dir), path("${sample_id}_uBAM.bam"), emit: ubam
+    tuple val(sample_id), path("${sample_id}_uBAM.bam"), emit: ubam
 
     script:
     """

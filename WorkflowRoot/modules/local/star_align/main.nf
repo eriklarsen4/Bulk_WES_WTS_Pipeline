@@ -14,17 +14,16 @@ process STAR_ALIGN {
     script:
     """
     STAR --runThreadN ${task.cpus} \
-	--readFilesType Fastx \
-	--runMode alignReads \
-	--twopassMode Basic \
-	--outSAMtype BAM SortedByCoordinate \
+        --readFilesType Fastx \
+        --runMode alignReads \
+        --twopassMode Basic \
+        --outSAMtype BAM SortedByCoordinate \
         --genomeDir ${star_index} \
         --readFilesCommand zcat \
         --readFilesIn ${r1_trimmed} ${r2_trimmed} \
         --outFileNamePrefix ${sample_id} \
-	--outBAMsortingThreadN 2 \
-	--quantMode GeneCounts \
-	--outFileNamePrefix ${sample_id}
+        --outBAMsortingThreadN 2 \
+        --quantMode GeneCounts
     
     samtools index ${sample_id}Aligned.sortedByCoord.out.bam
     """

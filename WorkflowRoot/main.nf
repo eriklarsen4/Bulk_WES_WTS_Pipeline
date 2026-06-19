@@ -215,7 +215,7 @@ workflow {
     //TRIM_GALORE(sample_ch, params.analysis_type)
     TRIM_GALORE(
         sample_ch.map { sample_id, sample_dir, r1, r2 ->
-            [sample_id, r1, r2, params.analysis_type]
+            [sample_id, r1, r2]
         }
     )
 

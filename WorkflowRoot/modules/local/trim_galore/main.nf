@@ -6,7 +6,7 @@ process TRIM_GALORE {
     tuple val(sample_id), path(sample_dir), path(reads_r1), path(reads_r2), val(analysis_type)
     
     output:
-    tuple val(sample_id), path(sample_dir), path("*_val_*.fq.gz"), emit: trimmed_reads
+    tuple val(sample_id), path(sample_dir), path("*_val_1.fq.gz"), path("*_val_2.fq.gz"), emit: trimmed_reads
     
     script:
     """

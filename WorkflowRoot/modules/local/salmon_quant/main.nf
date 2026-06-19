@@ -1,18 +1,16 @@
 process SALMON_QUANT {
     label 'quantification'
     tag "${sample_id}"
-    
-    publishDir "${sample_dir}/results", mode: 'copy', pattern: "quant.sf"
-    publishDir "${sample_dir}/results", mode: 'copy', pattern: "*.gene_tpm.tsv"
+    errorStrategy 'ignore'  // Add this line
     
     input:
-    tuple val(sample_id), val(sample_dir), path(r1_trimmed), path(r2_trimmed)
+    tuple val(sample_id), path(sample_dir), path(r1_trimmed), path(r2_trimmed), val(analysis_type)
     path(salmon_index)
     path(gtf)
-    
+
     output:
-    tuple val(sample_id), val(sample_dir), path("quant.sf"), emit: quant
-    path("${sample_id}.gene_tpm.tsv"), emit: gene_tpm
+    tuple val(sample_id), path("quant.sf"), optional: true, emit: quant_results
+    tuple val(sample_id), path("${sample_id}.gene_tpm.tsv"), optional: true, emit: gene_tpm
     
     script:
     """

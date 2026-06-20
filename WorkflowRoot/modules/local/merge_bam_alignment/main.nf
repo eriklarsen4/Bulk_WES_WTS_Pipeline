@@ -3,23 +3,23 @@
 process MERGE_BAM_ALIGNMENT {
     label 'merge_bam'
     tag "${sample_id}"
-
+    
     input:
     tuple val(sample_id), path(ubam)
-    path(aligned_bam)
+    tuple val(sample_id_2), path(aligned_bam)
     path(ref_fasta)
     path(ref_dict)
-    
+
     output:
     tuple val(sample_id), path("${sample_id}_mergebamalignment.bam"), emit: merged_bam
-    
+
     script:
     """
     export PICARD_JAR=/opt/ohpc/pub/apps/picard/2.23.4/libs/picard.jar
     
-    def memory_mb = (task.memory.toMega() * 0.9).toInteger()
+    memory_mb=\$(echo "${task.memory.toMega()} * 0.9" | bc)
     
-    java -Xmx${memory_mb}m \
+    java -Xmx\${memory_mb}m \
         -jar \$PICARD_JAR \
         MergeBamAlignment \
         R=${ref_fasta} \
@@ -35,7 +35,6 @@ process MERGE_BAM_ALIGNMENT {
         PRIMARY_ALIGNMENT_STRATEGY=MostDistant \
         ATTRIBUTES_TO_RETAIN=XS
 
-    # Delete intermediate files
     rm ${ubam}
     rm ${aligned_bam}
     """

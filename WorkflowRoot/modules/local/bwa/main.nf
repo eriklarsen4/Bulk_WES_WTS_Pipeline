@@ -5,7 +5,7 @@ process BWA_MEM {
     tag "${sample_id}"
     
     input:
-    tuple val(sample_id), val(sample_dir), path(r1_trimmed), path(r2_trimmed)
+    tuple val(sample_id), path(r1_trimmed), path(r2_trimmed)
     path(ref_fasta)
     path(bwa_index)
     path(bwa_index_amb)

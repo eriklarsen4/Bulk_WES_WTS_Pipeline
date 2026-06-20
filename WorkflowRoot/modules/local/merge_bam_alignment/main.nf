@@ -14,6 +14,8 @@ process MERGE_BAM_ALIGNMENT {
     tuple val(sample_id), path("${sample_id}_mergebamalignment.bam"), emit: merged_bam
     
     script:
+    export PICARD_JAR=/opt/ohpc/pub/apps/picard/2.23.4/libs/picard.jar
+    
     def memory_mb = (task.memory.toMega() * 0.9).toInteger()
     
     """

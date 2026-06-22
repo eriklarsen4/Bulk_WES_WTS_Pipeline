@@ -17,7 +17,7 @@ process MERGE_BAM_ALIGNMENT {
    
    """
     java -Xmx${avail_mem}m -jar \${PICARD_JAR} MergeBamAlignment \\
-        R=${reference_fasta} \\
+        R=${ref_fasta} \\
         UNMAPPED_BAM=${ubam} \\
         ALIGNED_BAM=${aligned_bam} \\
         O=${sample_id}_mergebamalignment.bam \\

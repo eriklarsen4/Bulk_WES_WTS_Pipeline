@@ -479,8 +479,8 @@ workflow {
         
         // Pass outputs as separate channels (matching process input)
         MERGE_BAM_ALIGNMENT(
-            FASTQ_TO_SAM_UBAM.out.ubam,
-            BWA_MEM.out.aligned_bam,
+            FASTQ_TO_SAM_UBAM.out.ubam
+                .join(BWA_MEM.out.aligned_bam),
             file(ref.fasta),
             file(ref.dict)
         )

@@ -263,7 +263,38 @@ workflow {
             )
         
             MUTECT2(BQSR.out.recal_bam, file(ref.fasta), file(ref.dict))
-        
-            """.stripIndent())
-    
+
+            FILTER_MUTECT_CALLS(
+                MUTECT2.out.final_vcf,
+                file(ref.fasta)
+            )
+
+            log.info("✓ WES pipeline complete for all samples")
+        }
+
+        // ========== CONDITIONAL WTS PIPELINE ==========
+        if (params.analysis_type == 'wts' || params.analysis_type == 'both') {
+            log.info("► Starting WTS (Whole Transcriptome Sequencing) pipeline...")
+            
+            STAR_ALIGN(
+                trimmed_reads_for_wts.wts,
+                file(ref.star_index)
+            )
+            
+            SALMON_QUANT(
+                trimmed_reads_for_wts.wts,
+                file(ref.salmon_index),
+                file(ref.gtf)
+            )
+            
+            log.info("✓ WTS pipeline complete for all samples")
+        }
+
+        // ========== COMPLETION ==========
+        log.info("""
+            ╔══════════════════════════════════════════════════════════╗
+            ║        PIPELINE EXECUTION COMPLETED SUCCESSFULLY          ║
+            ╚══════════════════════════════════════════════════════════╝
+            Results are available in each sample's /results directory.
+        """.stripIndent())
 }

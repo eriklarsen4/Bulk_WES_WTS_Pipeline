@@ -304,3 +304,5 @@ workflow {
         ╚══════════════════════════════════════════════════════════╝
         Results are available in each sample's /results directory.
     """.stripIndent())
+    
+}

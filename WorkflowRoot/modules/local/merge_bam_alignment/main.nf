@@ -3,19 +3,19 @@
 process MERGE_BAM_ALIGNMENT {
     label 'merge_bam'
     tag "${sample_id}"
-    
+
     input:
-    tuple val(sample_id), path(ubam), path(aligned_bam)
+    tuple val(sample_id), val(sample_dir), path(ubam), path(aligned_bam)
     path(ref_fasta)
     path(ref_dict)
-
+    
     output:
-    tuple val(sample_id), path("${sample_id}_mergebamalignment.bam"), emit: merged_bam
+    tuple val(sample_id), val(sample_dir), path("${sample_id}_mergebamalignment.bam"), path("${sample_id}_mergebamalignment.bai"), emit: merged_bam
+    
+    script:
+    def avail_mem = task.memory.toMega() as Integer
 
-   script:
-   def avail_mem = task.memory.toMega() as Integer
-   
-   """
+    """
     java -Xmx${avail_mem}m -jar \${PICARD_JAR} MergeBamAlignment \\
         R=${ref_fasta} \\
         UNMAPPED_BAM=${ubam} \\
@@ -29,5 +29,5 @@ process MERGE_BAM_ALIGNMENT {
         MAX_INSERTIONS_OR_DELETIONS=-1 \\
         PRIMARY_ALIGNMENT_STRATEGY=MostDistant \\
         ATTRIBUTES_TO_RETAIN=XS
-   """
+    """
 }

@@ -1,13 +1,13 @@
 process TRIM_GALORE {
     label 'trim'
     tag "${sample_id}"
-    
+
     input:
-    tuple val(sample_id), path(reads_r1), path(reads_r2)
-    
+    tuple val(sample_id), val(sample_dir), path(reads_r1), path(reads_r2)
+
     output:
-    tuple val(sample_id), path("*_val_1.fq.gz"), path("*_val_2.fq.gz"), emit: trimmed_reads
-    
+    tuple val(sample_id), val(sample_dir), path("*_val_1.fq.gz"), path("*_val_2.fq.gz"), emit: trimmed_reads
+
     script:
     """
     trim_galore --paired --quality 20 \

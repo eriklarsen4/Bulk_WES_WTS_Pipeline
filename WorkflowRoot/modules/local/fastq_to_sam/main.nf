@@ -5,10 +5,10 @@ process FASTQ_TO_SAM_UBAM {
     tag "${sample_id}"
     
     input:
-    tuple val(sample_id), path(r1_trimmed), path(r2_trimmed)
+    tuple val(sample_id), val(sample_dir), path(r1_trimmed), path(r2_trimmed)
     
     output:
-    tuple val(sample_id), path("${sample_id}_uBAM.bam"), emit: ubam
+    tuple val(sample_id), val(sample_dir), path("${sample_id}_uBAM.bam"), emit: ubam
     
     script:
     """

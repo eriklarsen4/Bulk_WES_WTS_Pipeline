@@ -144,165 +144,126 @@ def validateInputDirectories() {
 // ============================================================================
 
 workflow {
-
-    // ========== VALIDATION PHASE ==========
-    validateInputParams()
-    validateAllReferences()
-    validateInputDirectories()
-
-    log.info("""
-        ╔══════════════════════════════════════════════════════════╗
-        ║     WES/WTS NEXTFLOW PIPELINE - STARTING EXECUTION       ║
-        ╚══════════════════════════════════════════════════════════╝
-
-        Genome:           ${params.genome}
-        Analysis Type:    ${params.analysis_type}
-        Reference Dir:    ${params.reference_base}
-        Input Directories: ${params.input_dirs.split(',').size()} sample(s)
-    """.stripIndent())
-
-    // ========== REFERENCE SETUP ==========
-    ref = params.genomes[params.genome]
-
-    log.info("""
-        ╔══════════════════════════════════════════════════════════╗
-        ║     REFERENCE FILES VALIDATED                            ║
-        ╚══════════════════════════════════════════════════════════╝
-
-        FASTA:         ${ref.fasta}
-        BWA Index:     ${ref.bwa_index}
-        STAR Index:    ${ref.star_index}
-        Salmon Index:  ${ref.salmon_index}
-        dbSNP VCF:     ${ref.dbsnp_vcf}
-        Mills VCF:     ${ref.mills_vcf}
-        GTF:           ${ref.gtf}
-    """.stripIndent())
-
-    // ========== SAMPLE INPUT PHASE ==========
-    input_dirs_list = params.input_dirs.split(',').collect { it.trim() }
-
-    sample_ch = Channel
-    .from(input_dirs_list)
-    .map { sample_dir ->
-        def dir = file(sample_dir)
-        def sample_id = dir.name
-
-        // More permissive: just look for R1 and R2 anywhere in filename
-        def r1 = dir.listFiles().find { it.name =~ /R1.*\.(fq\.gz|fastq\.gz|fq|fastq)$/ }
-        def r2 = dir.listFiles().find { it.name =~ /R2.*\.(fq\.gz|fastq\.gz|fq|fastq)$/ }
-
-        log.info("Sample ID: ${sample_id}")
-        log.info("Looking for R1 and R2 files")
-        log.info("Found R1: ${r1?.name ?: 'NOT FOUND'}")
-        log.info("Found R2: ${r2?.name ?: 'NOT FOUND'}")
+    
+        // ========== VALIDATION PHASE ==========
+        validateInputParams()
+        validateAllReferences()
+        validateInputDirectories()
+    
+        log.info("""
+            ╔══════════════════════════════════════════════════════════╗
+            ║     WES/WTS NEXTFLOW PIPELINE - STARTING EXECUTION       ║
+            ╚══════════════════════════════════════════════════════════╝
+    
+            Genome:           ${params.genome}
+            Analysis Type:    ${params.analysis_type}
+            Reference Dir:    ${params.reference_base}
+            Input Directories: ${params.input_dirs.split(',').size()} sample(s)
+        """.stripIndent())
+    
+        // ========== REFERENCE SETUP ==========
+        ref = params.genomes[params.genome]
+    
+        log.info("""
+            ╔══════════════════════════════════════════════════════════╗
+            ║     REFERENCE FILES VALIDATED                            ║
+            ╚══════════════════════════════════════════════════════════╝
+    
+            FASTA:         ${ref.fasta}
+            BWA Index:     ${ref.bwa_index}
+            STAR Index:    ${ref.star_index}
+            Salmon Index:  ${ref.salmon_index}
+            dbSNP VCF:     ${ref.dbsnp_vcf}
+            Mills VCF:     ${ref.mills_vcf}
+            GTF:           ${ref.gtf}
+        """.stripIndent())
+    
+        // ========== SAMPLE INPUT PHASE ==========
+        input_dirs_list = params.input_dirs.split(',').collect { it.trim() }
+        sample_ch = Channel
+            .from(input_dirs_list)
+            .map { sample_dir ->
+                def dir = file(sample_dir)
+                def sample_id = dir.name
+                def r1 = dir.listFiles().find { it.name =~ /R1.*\.(fq\.gz|fastq\.gz|fq|fastq)$/ }
+                def r2 = dir.listFiles().find { it.name =~ /R2.*\.(fq\.gz|fastq\.gz|fq|fastq)$/ }
+                
+                log.info("Sample ID: ${sample_id}")
+                log.info("Looking for R1 and R2 files")
+                log.info("Found R1: ${r1?.name ?: 'NOT FOUND'}")
+                log.info("Found R2: ${r2?.name ?: 'NOT FOUND'}")
         
-        if (r1 && r2) {
-            log.info("✓ Match found!")
-            [sample_id, sample_dir, r1, r2]
-        } else {
-            log.warn("✗ No match - showing all files:")
-            dir.listFiles().each { f ->
-                log.warn("  File: ${f.name}")
-                log.warn("    Contains 'R1': ${f.name.contains('R1')}")
-                log.warn("    Contains 'R2': ${f.name.contains('R2')}")
+                if (r1 && r2) {
+                    log.info("✓ Match found!")
+                    [sample_id, sample_dir, r1, r2]
+                } else {
+                    log.warn("✗ No match - showing all files:")
+                    dir.listFiles().each { f ->
+                        log.warn("  File: ${f.name}")
+                        log.warn("    Contains 'R1': ${f.name.contains('R1')}")
+                        log.warn("    Contains 'R2': ${f.name.contains('R2')}")
+                    }
+                    return null
+                }
             }
-            return null
+            .filter { it != null }
+    
+        // ========== COMMON PREPROCESSING PHASE ==========
+        TRIM_GALORE(sample_ch)
+        
+        log.info("✓ Quality control (trim_galore) complete")
+        
+        // Branch the trimmed reads for both WES and WTS pipelines
+        trimmed_reads = TRIM_GALORE.out.trimmed_reads
+        trimmed_reads_for_wes = trimmed_reads.branch {
+            wes: params.analysis_type in ['wes', 'both']
+            other: true
         }
-    }
-    .filter { it != null }
-
-    // ========== COMMON PREPROCESSING PHASE ==========
-    TRIM_GALORE(
-        sample_ch.map { sample_id, sample_dir, r1, r2 ->
-            [sample_id, r1, r2]
+        trimmed_reads_for_wts = trimmed_reads.branch {
+            wts: params.analysis_type in ['wts', 'both']
+            other: true
         }
-    )
     
-    log.info("✓ Quality control (trim_galore) complete")
-    
-    // Branch the trimmed reads for both WES and WTS pipelines
-    trimmed_reads = TRIM_GALORE.out.trimmed_reads
-    trimmed_reads_for_wes = trimmed_reads.branch {
-        wes: params.analysis_type in ['wes', 'both']
-        other: true
-    }
-    trimmed_reads_for_wts = trimmed_reads.branch {
-        wts: params.analysis_type in ['wts', 'both']
-        other: true
-    }
-    
-    // ========== CONDITIONAL WES PIPELINE ==========
-    if (params.analysis_type == 'wes' || params.analysis_type == 'both') {
-        log.info("► Starting WES (Whole Exome Sequencing) pipeline...")
-    
-        FASTQ_TO_SAM_UBAM(trimmed_reads_for_wes.wes)
-    
-        BWA_MEM(
-            trimmed_reads_for_wes.wes,
-            file(ref.fasta),
-            file(ref.bwa_index),
-            file(ref.bwa_index + ".amb"),
-            file(ref.bwa_index + ".ann"),
-            file(ref.bwa_index + ".bwt"),
-            file(ref.bwa_index + ".pac"),
-            file(ref.bwa_index + ".sa")
-        )
-    
-        // Join the outputs correctly
-        ubam_and_aligned = FASTQ_TO_SAM_UBAM.out.ubam
-            .join(BWA_MEM.out.aligned_bam)
-    
-        MERGE_BAM_ALIGNMENT(
-            ubam_and_aligned,
-            file(ref.fasta),
-            file(ref.dict)
-        )
-    
-        MARK_DUPLICATES(MERGE_BAM_ALIGNMENT.out.merged_bam)
-        ADD_READ_GROUPS(MARK_DUPLICATES.out.dedup_bam)
-    
-        BQSR(
-            ADD_READ_GROUPS.out.rg_bam,
-            file(ref.fasta),
-            file(ref.dict),
-            file(ref.dbsnp_vcf),
-            file(ref.dbsnp_tbi)
-        )
-    
-        MUTECT2(BQSR.out.recal_bam, file(ref.fasta), file(ref.dict))
-    
-        FILTER_MUTECT_CALLS(
-            MUTECT2.out.final_vcf,
-            file(ref.fasta)
-        )
-    
-        log.info("✓ WES pipeline complete for all samples")
-    }
-    
-    // ========== CONDITIONAL WTS PIPELINE ==========
-    if (params.analysis_type == 'wts' || params.analysis_type == 'both') {
-        log.info("► Starting WTS (Whole Transcriptome Sequencing) pipeline...")
+        // ========== CONDITIONAL WES PIPELINE ==========
+        if (params.analysis_type == 'wes' || params.analysis_type == 'both') {
+            log.info("► Starting WES (Whole Exome Sequencing) pipeline...")
         
-        STAR_ALIGN(
-            trimmed_reads_for_wts.wts,
-            file(ref.star_index)
-        )
+            FASTQ_TO_SAM_UBAM(trimmed_reads_for_wes.wes)
         
-        SALMON_QUANT(
-            trimmed_reads_for_wts.wts,
-            file(ref.salmon_index),
-            file(ref.gtf)
-        )
+            BWA_MEM(
+                trimmed_reads_for_wes.wes,
+                file(ref.fasta),
+                file(ref.bwa_index),
+                file(ref.bwa_index + ".amb"),
+                file(ref.bwa_index + ".ann"),
+                file(ref.bwa_index + ".bwt"),
+                file(ref.bwa_index + ".pac"),
+                file(ref.bwa_index + ".sa")
+            )
         
-        log.info("✓ WTS pipeline complete for all samples")
-    }
-    
-    // ========== COMPLETION ==========
-    log.info("""
-        ╔══════════════════════════════════════════════════════════╗
-        ║        PIPELINE EXECUTION COMPLETED SUCCESSFULLY          ║
-        ╚══════════════════════════════════════════════════════════╝
-        Results are available in each sample's /results directory.
-    """.stripIndent())
+            // Join the outputs correctly - both have [sample_id, sample_dir, ...]
+            ubam_and_aligned = FASTQ_TO_SAM_UBAM.out.ubam
+                .join(BWA_MEM.out.aligned_bam)
+        
+            MERGE_BAM_ALIGNMENT(
+                ubam_and_aligned,
+                file(ref.fasta),
+                file(ref.dict)
+            )
+        
+            MARK_DUPLICATES(MERGE_BAM_ALIGNMENT.out.merged_bam)
+            ADD_READ_GROUPS(MARK_DUPLICATES.out.dedup_bam)
+        
+            BQSR(
+                ADD_READ_GROUPS.out.rg_bam,
+                file(ref.fasta),
+                file(ref.dict),
+                file(ref.dbsnp_vcf),
+                file(ref.dbsnp_tbi)
+            )
+        
+            MUTECT2(BQSR.out.recal_bam, file(ref.fasta), file(ref.dict))
+        
+        """.stripIndent())
     
 }

@@ -3,9 +3,9 @@
 process BWA_MEM {
     label 'bwa_align'
     tag "${sample_id}"
-    
+
     input:
-    tuple val(sample_id), path(r1_trimmed), path(r2_trimmed)
+    tuple val(sample_id), val(sample_dir), path(r1_trimmed), path(r2_trimmed)
     path(ref_fasta)
     path(bwa_index)
     path(bwa_index_amb)
@@ -13,10 +13,10 @@ process BWA_MEM {
     path(bwa_index_bwt)
     path(bwa_index_pac)
     path(bwa_index_sa)
-    
+
     output:
-    tuple val(sample_id), path("${sample_id}_aligned_reads.bam"), emit: aligned_bam
-    
+    tuple val(sample_id), val(sample_dir), path("${sample_id}_aligned_reads.bam"), emit: aligned_bam
+
     script:
     """
     bwa mem -t ${task.cpus} \

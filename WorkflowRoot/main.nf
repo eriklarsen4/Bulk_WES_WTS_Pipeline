@@ -212,23 +212,33 @@ workflow {
     .filter { it != null }
 
     // ========== COMMON PREPROCESSING PHASE ==========
-    //TRIM_GALORE(sample_ch, params.analysis_type)
     TRIM_GALORE(
         sample_ch.map { sample_id, sample_dir, r1, r2 ->
             [sample_id, r1, r2]
         }
     )
-
+    
     log.info("✓ Quality control (trim_galore) complete")
-
+    
+    // Branch the trimmed reads for both WES and WTS pipelines
+    trimmed_reads = TRIM_GALORE.out.trimmed_reads
+    trimmed_reads_for_wes = trimmed_reads.branch {
+        wes: params.analysis_type in ['wes', 'both']
+        other: true
+    }
+    trimmed_reads_for_wts = trimmed_reads.branch {
+        wts: params.analysis_type in ['wts', 'both']
+        other: true
+    }
+    
     // ========== CONDITIONAL WES PIPELINE ==========
     if (params.analysis_type == 'wes' || params.analysis_type == 'both') {
         log.info("► Starting WES (Whole Exome Sequencing) pipeline...")
-        
-        FASTQ_TO_SAM_UBAM(TRIM_GALORE.out.trimmed_reads)
-        
+    
+        FASTQ_TO_SAM_UBAM(trimmed_reads_for_wes.wes)
+    
         BWA_MEM(
-            TRIM_GALORE.out.trimmed_reads,
+            trimmed_reads_for_wes.wes,
             file(ref.fasta),
             file(ref.bwa_index),
             file(ref.bwa_index + ".amb"),
@@ -237,17 +247,20 @@ workflow {
             file(ref.bwa_index + ".pac"),
             file(ref.bwa_index + ".sa")
         )
-        
-        // Pass outputs as separate channels (matching process input)
+    
+        // Join the outputs correctly
+        ubam_and_aligned = FASTQ_TO_SAM_UBAM.out.ubam
+            .join(BWA_MEM.out.aligned_bam)
+    
         MERGE_BAM_ALIGNMENT(
-            FASTQ_TO_SAM_UBAM.out.ubam.join(BWA_MEM.out.aligned_bam),
+            ubam_and_aligned,
             file(ref.fasta),
             file(ref.dict)
         )
-        
+    
         MARK_DUPLICATES(MERGE_BAM_ALIGNMENT.out.merged_bam)
         ADD_READ_GROUPS(MARK_DUPLICATES.out.dedup_bam)
-        
+    
         BQSR(
             ADD_READ_GROUPS.out.rg_bam,
             file(ref.fasta),
@@ -255,42 +268,39 @@ workflow {
             file(ref.dbsnp_vcf),
             file(ref.dbsnp_tbi)
         )
-        
+    
         MUTECT2(BQSR.out.recal_bam, file(ref.fasta), file(ref.dict))
-        
+    
         FILTER_MUTECT_CALLS(
             MUTECT2.out.final_vcf,
             file(ref.fasta)
         )
-        
+    
         log.info("✓ WES pipeline complete for all samples")
     }
-
+    
     // ========== CONDITIONAL WTS PIPELINE ==========
     if (params.analysis_type == 'wts' || params.analysis_type == 'both') {
-
         log.info("► Starting WTS (Whole Transcriptome Sequencing) pipeline...")
-
+        
         STAR_ALIGN(
-            TRIM_GALORE.out.trimmed_reads,
+            trimmed_reads_for_wts.wts,
             file(ref.star_index)
         )
-
+        
         SALMON_QUANT(
-            TRIM_GALORE.out.trimmed_reads,
+            trimmed_reads_for_wts.wts,
             file(ref.salmon_index),
             file(ref.gtf)
         )
-
+        
         log.info("✓ WTS pipeline complete for all samples")
     }
-
+    
     // ========== COMPLETION ==========
     log.info("""
         ╔══════════════════════════════════════════════════════════╗
         ║        PIPELINE EXECUTION COMPLETED SUCCESSFULLY          ║
         ╚══════════════════════════════════════════════════════════╝
-
         Results are available in each sample's /results directory.
     """.stripIndent())
-}

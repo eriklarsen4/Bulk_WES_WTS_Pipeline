@@ -5,8 +5,7 @@ process MERGE_BAM_ALIGNMENT {
     tag "${sample_id}"
     
     input:
-    tuple val(sample_id), path(ubam)
-    tuple val(sample_id_2), path(aligned_bam)
+    tuple val(sample_id), path(ubam), path(aligned_bam)
     path(ref_fasta)
     path(ref_dict)
 

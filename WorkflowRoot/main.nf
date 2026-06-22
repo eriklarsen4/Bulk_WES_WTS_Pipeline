@@ -227,9 +227,9 @@ workflow {
         // ========== CONDITIONAL WES PIPELINE ==========
         if (params.analysis_type == 'wes' || params.analysis_type == 'both') {
             log.info("► Starting WES (Whole Exome Sequencing) pipeline...")
-        
+
             FASTQ_TO_SAM_UBAM(trimmed_reads_for_wes.wes)
-        
+
             BWA_MEM(
                 trimmed_reads_for_wes.wes,
                 file(ref.fasta),
@@ -240,20 +240,23 @@ workflow {
                 file(ref.bwa_index + ".pac"),
                 file(ref.bwa_index + ".sa")
             )
-        
-            // Join the outputs correctly - both have [sample_id, sample_dir, ...]
+
+            // Join ubam and aligned_bam, keeping only sample_id and sample_dir
             ubam_and_aligned = FASTQ_TO_SAM_UBAM.out.ubam
                 .join(BWA_MEM.out.aligned_bam)
-        
+                .map { sample_id, sample_dir, ubam, sample_dir_2, aligned_bam ->
+                    [sample_id, sample_dir, ubam, aligned_bam]
+                }
+
             MERGE_BAM_ALIGNMENT(
                 ubam_and_aligned,
                 file(ref.fasta),
                 file(ref.dict)
             )
-        
+
             MARK_DUPLICATES(MERGE_BAM_ALIGNMENT.out.merged_bam)
             ADD_READ_GROUPS(MARK_DUPLICATES.out.dedup_bam)
-        
+
             BQSR(
                 ADD_READ_GROUPS.out.rg_bam,
                 file(ref.fasta),
@@ -261,7 +264,7 @@ workflow {
                 file(ref.dbsnp_vcf),
                 file(ref.dbsnp_tbi)
             )
-        
+
             MUTECT2(BQSR.out.recal_bam, file(ref.fasta), file(ref.dict))
 
             FILTER_MUTECT_CALLS(

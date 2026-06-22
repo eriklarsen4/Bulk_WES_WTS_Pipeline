@@ -264,6 +264,6 @@ workflow {
         
             MUTECT2(BQSR.out.recal_bam, file(ref.fasta), file(ref.dict))
         
-        """.stripIndent())
+            """.stripIndent())
     
 }

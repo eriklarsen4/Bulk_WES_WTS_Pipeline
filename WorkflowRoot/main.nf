@@ -260,16 +260,18 @@ workflow {
             BQSR(
                 ADD_READ_GROUPS.out.rg_bam,
                 file(ref.fasta),
+                file(ref.fasta_fai),
                 file(ref.dict),
                 file(ref.dbsnp_vcf),
                 file(ref.dbsnp_tbi)
             )
 
-            MUTECT2(BQSR.out.recal_bam, file(ref.fasta), file(ref.dict))
+            MUTECT2(BQSR.out.recal_bam, file(ref.fasta), file(ref.fasta_fai), file(ref.dict))
 
             FILTER_MUTECT_CALLS(
                 MUTECT2.out.final_vcf,
-                file(ref.fasta)
+                file(ref.fasta),
+                file(ref.fasta_fai)
             )
 
             log.info("✓ WES pipeline complete for all samples")

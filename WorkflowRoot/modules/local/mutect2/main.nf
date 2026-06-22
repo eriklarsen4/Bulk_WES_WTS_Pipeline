@@ -7,6 +7,7 @@ process MUTECT2 {
     input:
     tuple val(sample_id), val(sample_dir), path(recal_bam), path(recal_bai)
     path(ref_fasta)
+    path(ref_fasta_fai)
     path(ref_dict)
     
     output:

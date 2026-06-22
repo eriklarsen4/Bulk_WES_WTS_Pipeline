@@ -7,6 +7,7 @@ process BQSR {
     input:
     tuple val(sample_id), val(sample_dir), path(rg_bam), path(rg_bai)
     path(ref_fasta)
+    path(ref_fasta_fai)
     path(ref_dict)
     path(dbsnp_vcf)
     path(dbsnp_tbi)

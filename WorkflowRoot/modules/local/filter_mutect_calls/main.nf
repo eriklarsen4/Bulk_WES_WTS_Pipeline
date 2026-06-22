@@ -8,8 +8,9 @@ process FILTER_MUTECT_CALLS {
     publishDir "${sample_dir}/results", mode: 'copy', pattern: "*unfiltered.vcf.gz*"
     
     input:
-    tuple val(sample_id), val(sample_dir), path(vcf), path(vcf_idx), path(f1r2_tar)
+    tuple val(sample_id), val(sample_dir), path(vcf), path(vcf_idx)
     path(ref_fasta)
+    path(ref_fasta_fai)
     
     output:
     tuple val(sample_id), val(sample_dir), path("${sample_id}_unfiltered.vcf.gz"), path("${sample_id}_unfiltered.vcf.gz.tbi"), emit: unfiltered_vcf
@@ -48,7 +49,6 @@ process FILTER_MUTECT_CALLS {
     
     # Clean up temp files
     rm ${vcf}
-    rm ${vcf_index}
-    #rm ${f1r2_tar}
+    rm ${vcf_idx}
     """
 }

@@ -144,7 +144,6 @@ def validateInputDirectories() {
 // ============================================================================
 
 workflow {
-    
         // ========== VALIDATION PHASE ==========
         validateInputParams()
         validateAllReferences()
@@ -154,7 +153,6 @@ workflow {
             ╔══════════════════════════════════════════════════════════╗
             ║     WES/WTS NEXTFLOW PIPELINE - STARTING EXECUTION       ║
             ╚══════════════════════════════════════════════════════════╝
-    
             Genome:           ${params.genome}
             Analysis Type:    ${params.analysis_type}
             Reference Dir:    ${params.reference_base}
@@ -168,7 +166,6 @@ workflow {
             ╔══════════════════════════════════════════════════════════╗
             ║     REFERENCE FILES VALIDATED                            ║
             ╚══════════════════════════════════════════════════════════╝
-    
             FASTA:         ${ref.fasta}
             BWA Index:     ${ref.bwa_index}
             STAR Index:    ${ref.star_index}
@@ -192,7 +189,7 @@ workflow {
                 log.info("Looking for R1 and R2 files")
                 log.info("Found R1: ${r1?.name ?: 'NOT FOUND'}")
                 log.info("Found R2: ${r2?.name ?: 'NOT FOUND'}")
-        
+    
                 if (r1 && r2) {
                     log.info("✓ Match found!")
                     [sample_id, sample_dir, r1, r2]
@@ -210,9 +207,7 @@ workflow {
     
         // ========== COMMON PREPROCESSING PHASE ==========
         TRIM_GALORE(sample_ch)
-        
-        log.info("✓ Quality control (trim_galore) complete")
-        
+    
         // Branch the trimmed reads for both WES and WTS pipelines
         trimmed_reads = TRIM_GALORE.out.trimmed_reads
         trimmed_reads_for_wes = trimmed_reads.branch {
@@ -226,10 +221,8 @@ workflow {
     
         // ========== CONDITIONAL WES PIPELINE ==========
         if (params.analysis_type == 'wes' || params.analysis_type == 'both') {
-            log.info("► Starting WES (Whole Exome Sequencing) pipeline...")
-
             FASTQ_TO_SAM_UBAM(trimmed_reads_for_wes.wes)
-
+    
             BWA_MEM(
                 trimmed_reads_for_wes.wes,
                 file(ref.fasta),
@@ -240,23 +233,22 @@ workflow {
                 file(ref.bwa_index + ".pac"),
                 file(ref.bwa_index + ".sa")
             )
-
-            // Join ubam and aligned_bam, keeping only sample_id and sample_dir
+    
             ubam_and_aligned = FASTQ_TO_SAM_UBAM.out.ubam
                 .join(BWA_MEM.out.aligned_bam)
                 .map { sample_id, sample_dir, ubam, sample_dir_2, aligned_bam ->
                     [sample_id, sample_dir, ubam, aligned_bam]
                 }
-
+    
             MERGE_BAM_ALIGNMENT(
                 ubam_and_aligned,
                 file(ref.fasta),
                 file(ref.dict)
             )
-
+    
             MARK_DUPLICATES(MERGE_BAM_ALIGNMENT.out.merged_bam)
             ADD_READ_GROUPS(MARK_DUPLICATES.out.dedup_bam)
-
+    
             BQSR(
                 ADD_READ_GROUPS.out.rg_bam,
                 file(ref.fasta),
@@ -265,22 +257,18 @@ workflow {
                 file(ref.dbsnp_vcf),
                 file(ref.dbsnp_tbi)
             )
-
+    
             MUTECT2(BQSR.out.recal_bam, file(ref.fasta), file(ref.fasta_fai), file(ref.dict))
-
+    
             FILTER_MUTECT_CALLS(
                 MUTECT2.out.final_vcf,
                 file(ref.fasta),
                 file(ref.fasta_fai)
             )
-
-            log.info("✓ WES pipeline complete for all samples")
         }
-
+    
         // ========== CONDITIONAL WTS PIPELINE ==========
         if (params.analysis_type == 'wts' || params.analysis_type == 'both') {
-            log.info("► Starting WTS (Whole Transcriptome Sequencing) pipeline...")
-            
             STAR_ALIGN(
                 trimmed_reads_for_wts.wts,
                 file(ref.star_index)
@@ -291,15 +279,27 @@ workflow {
                 file(ref.salmon_index),
                 file(ref.gtf)
             )
-            
-            log.info("✓ WTS pipeline complete for all samples")
         }
-
-        // ========== COMPLETION ==========
+    }
+    
+    // ========== COMPLETION LOGGING (runs after workflow finishes) ==========
+    workflow.onComplete {
         log.info("""
             ╔══════════════════════════════════════════════════════════╗
             ║        PIPELINE EXECUTION COMPLETED SUCCESSFULLY          ║
             ╚══════════════════════════════════════════════════════════╝
+            Status:   ${workflow.success ? 'SUCCESS ✓' : 'FAILED ✘'}
+            Duration: ${workflow.duration}
             Results are available in each sample's /results directory.
+        """.stripIndent())
+    }
+    
+    workflow.onError {
+        log.error("""
+            ╔══════════════════════════════════════════════════════════╗
+            ║        PIPELINE EXECUTION FAILED                         ║
+            ╚══════════════════════════════════════════════════════════╝
+            Error:   ${workflow.errorMessage}
+            Check:   .nextflow.log for details
         """.stripIndent())
 }

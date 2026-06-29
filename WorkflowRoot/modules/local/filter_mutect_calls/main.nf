@@ -6,10 +6,7 @@ process FILTER_MUTECT_CALLS {
     publishDir "${sample_dir}/results", mode: 'copy', pattern: "*filtered.vcf.gz*"
     publishDir "${sample_dir}/results", mode: 'copy', pattern: "*unfiltered.vcf.gz*"
     input:
-    val(sample_id)
-    val(sample_dir)
-    path(vcf)
-    path(vcf_idx)
+    tuple val(sample_id), val(sample_dir), path(vcf), path(vcf_idx)
     path(ref_fasta)
     path(ref_fasta_fai)
     path(ref_dict)

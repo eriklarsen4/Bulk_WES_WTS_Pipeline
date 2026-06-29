@@ -261,7 +261,7 @@ workflow {
             MUTECT2(BQSR.out.recal_bam, file(ref.fasta), file(ref.fasta_fai), file(ref.dict))
     
             FILTER_MUTECT_CALLS(
-                MUTECT2.out.final_vcf.flatten(),
+                MUTECT2.out.final_vcf,
                 file(ref.fasta),
                 file(ref.fasta_fai),
                 file(ref.dict)

@@ -14,8 +14,9 @@ process MUTECT2 {
     tuple val(sample_id), val(sample_dir), path("${sample_id}.vcf.gz"), path("${sample_id}.vcf.gz.tbi"), emit: final_vcf
     
     script:
+    def memory_mb = (task.memory.toMega() * 0.9).toInteger()
     """
-    gatk Mutect2 \
+    gatk --java-options "-Xmx${memory_mb}m" Mutect2 \
         -R ${ref_fasta} \
         -I ${recal_bam} \
         -O ${sample_id}.vcf.gz 

@@ -42,15 +42,15 @@ process BQSR {
 
     # AnalyzeCovariates disabled due to R package dependency issues
     # Can be run separately post-pipeline if needed
-    #export R_LIBS_USER="${HOME}/R/x86_64-pc-linux-gnu-library/4.1"
-    #export R_LIBS="${R_LIBS_USER}:/opt/ohpc/pub/apps/R/4.1.0/lib64/R/library"
-    #/opt/ohpc/pub/apps/R/4.1.0/bin/Rscript -e "library(gplots)"  # Test
+    export R_LIBS_USER="${HOME}/R/x86_64-pc-linux-gnu-library/4.1"
+    export R_LIBS="${R_LIBS_USER}:/opt/ohpc/pub/apps/R/4.1.0/lib64/R/library"
+    /opt/ohpc/pub/apps/R/4.1.0/bin/Rscript -e "library(gplots)"  # Test
     
-    #gatk AnalyzeCovariates \
-    #-before ${sample_id}_preRecal_basecalls.table \
-    #-after ${sample_id}_postRecal_basecalls.table \
-    #-plots ${sample_id}_covAnalysis.pdf \
-    #-csv ${sample_id}_covAnalysis.csv
+    gatk AnalyzeCovariates \
+    -before ${sample_id}_preRecal_basecalls.table \
+    -after ${sample_id}_postRecal_basecalls.table \
+    -plots ${sample_id}_covAnalysis.pdf \
+    -csv ${sample_id}_covAnalysis.csv
 
     # Delete intermediate files
     rm ${rg_bam}

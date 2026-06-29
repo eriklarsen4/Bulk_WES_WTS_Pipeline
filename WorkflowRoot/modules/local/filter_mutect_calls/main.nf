@@ -6,7 +6,7 @@ process FILTER_MUTECT_CALLS {
     publishDir "${sample_dir}/results", mode: 'copy', pattern: "*filtered.vcf.gz*"
     publishDir "${sample_dir}/results", mode: 'copy', pattern: "*unfiltered.vcf.gz*"
     input:
-    tuple val(sample_id), val(sample_dir), path(vcf), path(vcf_idx)
+    tuple val(sample_id), val(sample_dir), path(vcf), path(vcf_idx), path(vcf_stats)
     path(ref_fasta)
     path(ref_fasta_fai)
     path(ref_dict)
@@ -17,6 +17,7 @@ process FILTER_MUTECT_CALLS {
     """
     cp ${vcf} ${sample_id}_unfiltered.vcf.gz
     cp ${vcf_idx} ${sample_id}_unfiltered.vcf.gz.tbi
+    cp ${vcf_stats} ${sample_id}_unfiltered.vcf.gz.stats
     gatk FilterMutectCalls \
       -V ${vcf} \
       -R ${ref_fasta} \
@@ -26,5 +27,6 @@ process FILTER_MUTECT_CALLS {
       --create-output-variant-index
     rm ${vcf}
     rm ${vcf_idx}
+    rm ${vcf_stats}
     """
 }

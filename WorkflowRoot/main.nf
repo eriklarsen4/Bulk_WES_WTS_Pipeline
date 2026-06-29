@@ -263,7 +263,8 @@ workflow {
             FILTER_MUTECT_CALLS(
                 MUTECT2.out.final_vcf,
                 file(ref.fasta),
-                file(ref.fasta_fai)
+                file(ref.fasta_fai),
+                file(ref.dict)
             )
         }
     

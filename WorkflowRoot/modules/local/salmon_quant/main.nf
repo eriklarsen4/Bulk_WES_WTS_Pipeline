@@ -17,6 +17,7 @@ process SALMON_QUANT {
       -2 ${r2_trimmed} \
       -p ${task.cpus} \
       --validateMappings \
+      --minAssignedFrags 1 \
       -o ${sample_id}_quant
     cp ${sample_id}_quant/quant.sf ${sample_id}_quant.sf
     """

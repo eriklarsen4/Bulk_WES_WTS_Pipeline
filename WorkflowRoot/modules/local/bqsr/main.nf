@@ -12,8 +12,6 @@ process BQSR {
     path(dbsnp_tbi)
     output:
     tuple val(sample_id), val(sample_dir), path("${sample_id}_recal_reads.bam"), path("${sample_id}_recal_reads.bai"), emit: recal_bam
-    path("${sample_id}_covAnalysis.pdf"), optional: true
-    path("${sample_id}_covAnalysis.csv"), optional: true
     script:
     def memory_mb = (task.memory.toMega() * 0.9).toInteger()
     """
@@ -35,14 +33,6 @@ process BQSR {
         -R ${ref_fasta} \\
         --known-sites ${dbsnp_vcf} \\
         -O ${sample_id}_postRecal_basecalls.table
-    # Analyze covariates
-    export R_LIBS_USER="\${HOME}/R/x86_64-pc-linux-gnu-library/4.1"
-    export R_LIBS="\${R_LIBS_USER}:/opt/ohpc/pub/apps/R/4.1.0/lib64/R/library"
-    gatk AnalyzeCovariates \\
-        -before ${sample_id}_preRecal_basecalls.table \\
-        -after ${sample_id}_postRecal_basecalls.table \\
-        -plots ${sample_id}_covAnalysis.pdf \\
-        -csv ${sample_id}_covAnalysis.csv
     # Delete intermediate files
     rm ${rg_bam}
     rm ${rg_bai}

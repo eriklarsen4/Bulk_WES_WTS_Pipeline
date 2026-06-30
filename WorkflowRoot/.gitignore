@@ -1,0 +1,5 @@
+# References files - too large for git
+*.fa.gz
+*.fasta
+*.fasta.fai
+genomicsshare/
